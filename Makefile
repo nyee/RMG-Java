@@ -20,7 +20,9 @@ RUNDIR=$(CURDIR)/run
 # Call with 'make F90=g95' if you want to use g95 
 # or 'make F90=gfortran' for GNU Fortran (recommended)
 # Here we set the default
-F90=gfortran
+#F90=gfortran
+#changed so that newer version of gfortran is used -nyee
+F90=~/gcc/gcc-4.7/bin/gfortran
 
 # Some tests
 uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
