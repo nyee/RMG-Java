@@ -1,0 +1,12 @@
+// unless otherwise noted, Reactions and modified Arrhenius parameters from:
+//	O Herbinet et al.
+//	"Primary Mechanism of the Thermal Decomposition of Tricyclodecane"
+//	J. Phys. Chem. A 2006, 110, 11298-11314
+
+
+Unit:
+A: mol/cm3/s
+E: kcal/mol
+
+Reactions:
+
