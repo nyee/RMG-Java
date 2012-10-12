@@ -473,7 +473,7 @@ public class ReactionModelGenerator {
         		String thermoMethod = st.nextToken().toLowerCase();
         		if (thermoMethod.equals("qm")) {
         			ChemGraph.useQM = true;
-        			QMTPThermoWriter.initialize();
+        			//QMLibraryEditor.initialize();
 					if(st.hasMoreTokens()){//override the default qmprogram ("both") if there are more; current options: "gaussian03" and "mopac" and of course, "both"
 					    QMTP.qmprogram = st.nextToken().toLowerCase();
 					}
