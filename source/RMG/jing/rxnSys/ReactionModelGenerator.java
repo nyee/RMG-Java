@@ -108,7 +108,7 @@ public class ReactionModelGenerator {
 	protected LinkedHashSet restartEdgeRxns = new LinkedHashSet();
     // Constructors
 	
-	private HashSet specs = new HashSet();
+	private LinkedHashSet specs = new LinkedHashSet();
 	//public static native long getCpuTime();
 	//static {System.loadLibrary("cpuTime");}
 
@@ -1471,7 +1471,7 @@ public class ReactionModelGenerator {
 				double pt = System.currentTimeMillis();
 				// Grab all species from primary kinetics / reaction libraries
 				//	WE CANNOT PRUNE THESE SPECIES
-				HashMap unprunableSpecies = new HashMap();
+				LinkedHashMap unprunableSpecies = new LinkedHashMap();
 				if (getPrimaryKineticLibrary() != null) {
 					unprunableSpecies.putAll(getPrimaryKineticLibrary().speciesSet);
 				}
@@ -2085,7 +2085,7 @@ public class ReactionModelGenerator {
 		boolean found = false;
 		if (rOrP.equals("reactants")){
 			Iterator originalreactants = reactionStructure.getReactants();
-			HashSet tempHashSet = new HashSet();
+			LinkedHashSet tempHashSet = new LinkedHashSet();
 			while(originalreactants.hasNext()){
 				tempHashSet.add(originalreactants.next());
 			}
@@ -2111,7 +2111,7 @@ public class ReactionModelGenerator {
 		}
 		else{
 			Iterator originalproducts = reactionStructure.getProducts();
-			HashSet tempHashSet = new HashSet();
+			LinkedHashSet tempHashSet = new LinkedHashSet();
 			while(originalproducts.hasNext()){
 				tempHashSet.add(originalproducts.next());
 			}
@@ -2152,7 +2152,7 @@ public class ReactionModelGenerator {
 			FileReader fr = new FileReader(coreSpecies);
 			BufferedReader reader = new BufferedReader(fr);
 			String line = ChemParser.readMeaningfulLine(reader, true);
-			//HashSet speciesSet = new HashSet();
+			//LinkedHashSet speciesSet = new LinkedHashSet();
 			//			if (reactionSystem == null){//10/24/07 gmagoon: commenting out since contents of if was already commented out anyway
 			//				//ReactionSystem reactionSystem = new ReactionSystem();
 			//			}
@@ -2302,7 +2302,7 @@ public class ReactionModelGenerator {
 //			FileReader fr = new FileReader(edgeSpecies);
 //			BufferedReader reader = new BufferedReader(fr);
 //			String line = ChemParser.readMeaningfulLine(reader);
-//			//HashSet speciesSet = new HashSet();
+//			//LinkedHashSet speciesSet = new LinkedHashSet();
 //			
 //			while (line!=null) {
 //				
@@ -3947,11 +3947,11 @@ public class ReactionModelGenerator {
         //#]
     }
 
-    public void pruneReactionModel(HashMap unprunableSpecies) {
+    public void pruneReactionModel(LinkedHashMap unprunableSpecies) {
 		
 		Runtime runtime = Runtime.getRuntime();
 
-        HashMap prunableSpeciesMap = new HashMap();
+        LinkedHashMap prunableSpeciesMap = new LinkedHashMap();
 		//check whether all the reaction systems reached target conversion/time
 		boolean allReachedTarget = true;
 		for (Integer i = 0; i < reactionSystemList.size(); i++) {
@@ -4118,7 +4118,7 @@ public class ReactionModelGenerator {
 			ReactionTemplateLibrary rtl = ReactionTemplateLibrary.getINSTANCE();
 			
 			iter = ((CoreEdgeReactionModel)getReactionModel()).getUnreactedReactionSet().iterator();
-			HashSet toRemove = new HashSet();
+			LinkedHashSet toRemove = new LinkedHashSet();
 			while(iter.hasNext()){
 				Reaction reaction = (Reaction)iter.next();
 				if (reactionPrunableQ(reaction, speciesToPrune)) toRemove.add(reaction);
@@ -4146,16 +4146,16 @@ public class ReactionModelGenerator {
 			//remove reactions from PDepNetworks in PDep cases
 			if (reactionModelEnlarger instanceof RateBasedPDepRME)	{
 				iter = PDepNetwork.getNetworks().iterator();
-				HashSet pdnToRemove = new HashSet();
-				HashSet toRemovePath;
-				HashSet toRemoveNet;
-				HashSet toRemoveNonincluded;
-				HashSet toRemoveIsomer;
+				LinkedHashSet pdnToRemove = new LinkedHashSet();
+				LinkedHashSet toRemovePath;
+				LinkedHashSet toRemoveNet;
+				LinkedHashSet toRemoveNonincluded;
+				LinkedHashSet toRemoveIsomer;
 				while (iter.hasNext()){
 					PDepNetwork pdn = (PDepNetwork)iter.next();
 					//identify path reactions to remove
 					Iterator rIter = pdn.getPathReactions().iterator();
-					toRemovePath = new HashSet();
+					toRemovePath = new LinkedHashSet();
 					while(rIter.hasNext()){
 						Reaction reaction = (Reaction)rIter.next();
 						try {
@@ -4184,21 +4184,21 @@ public class ReactionModelGenerator {
 					}
 					//identify net reactions to remove
 					rIter = pdn.getNetReactions().iterator();
-					toRemoveNet = new HashSet();
+					toRemoveNet = new LinkedHashSet();
 					while(rIter.hasNext()){
 						Reaction reaction = (Reaction)rIter.next();
 						if (reactionPrunableQ(reaction, speciesToPrune)) toRemoveNet.add(reaction);
 					}
 					//identify nonincluded reactions to remove
 					rIter = pdn.getNonincludedReactions().iterator();
-					toRemoveNonincluded = new HashSet();
+					toRemoveNonincluded = new LinkedHashSet();
 					while(rIter.hasNext()){
 						Reaction reaction = (Reaction)rIter.next();
 						if (reactionPrunableQ(reaction, speciesToPrune)) toRemoveNonincluded.add(reaction);
 					}
 					//identify isomers to remove
 					Iterator iIter = pdn.getIsomers().iterator();
-					toRemoveIsomer = new HashSet();
+					toRemoveIsomer = new LinkedHashSet();
 					while(iIter.hasNext()){
 						PDepIsomer pdi = (PDepIsomer)iIter.next();
 						Iterator isIter = pdi.getSpeciesListIterator();
