@@ -229,7 +229,6 @@ public class QMLibraryEditor {
     	}
     	
     	catch(IOException e) {
-    		Logger.logStackTrace(e);
     		throw new IOException("Can't read thermo in primary thermo library!");
     	}
     	

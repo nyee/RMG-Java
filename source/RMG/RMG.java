@@ -114,7 +114,7 @@ public class RMG {
 
        // Finish the logger
        Logger.finish();
-       
+       System.exit(0);
 
        
     }
