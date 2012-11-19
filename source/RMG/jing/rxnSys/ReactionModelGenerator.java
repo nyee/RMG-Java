@@ -534,10 +534,14 @@ public class ReactionModelGenerator {
 							QMTP.qmfolder = "QMfiles/";
 							QMTP.qmVerbose = true;
 						}
+						if(!checkQmVerbose.equals("off")){
+							Logger.critical("condition.txt: QMTP 'Verbose' field should be 'on' or 'off'");
+							System.exit(0);
+						}
 					
 					}
 					else{
-						Logger.critical("condition.txt: Can't find 'Verbose:' field (should be 'on' or 'off)'");
+						Logger.critical("condition.txt: Can't find QMTP 'Verbose:' field (should be 'on' or 'off)'");
 						System.exit(0);
 					}
         		}//otherwise, the flag useQM will remain false by default and the traditional group additivity approach will be used
