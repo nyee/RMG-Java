@@ -108,11 +108,12 @@ public class ReactionModelGenerator {
 	protected LinkedHashSet restartEdgeRxns = new LinkedHashSet();
     // Constructors
 	
-	private HashSet specs = new HashSet();
+	private LinkedHashSet specs = new LinkedHashSet();
 	//public static native long getCpuTime();
 	//static {System.loadLibrary("cpuTime");}
 
 	public static boolean rerunFame = false;
+	public static boolean qmVerbose = false;
 
 	protected static double tolerance;//can be interpreted as "coreTol" (vs. edgeTol)
 	protected static double termTol;
@@ -522,6 +523,25 @@ public class ReactionModelGenerator {
 					}
 					else{
 						Logger.critical("condition.txt: Can't find 'CheckConnectivity:' field (should be 'off', 'check', or 'confirm')");
+						System.exit(0);
+					}
+					line = ChemParser.readMeaningfulLine(reader, true); //read in either QM verbose option
+					if (line.startsWith("Verbose:")){
+						StringTokenizer st5 = new StringTokenizer(line);
+						String nameQmVerbose = st5.nextToken(); //String Verbose
+						String checkQmVerbose = st5.nextToken().toLowerCase();
+						if (checkQmVerbose.equals("on")){
+							QMTP.qmfolder = "QMfiles/";
+							QMTP.qmVerbose = true;
+						}
+						else if(!checkQmVerbose.equals("off")){
+							Logger.critical("condition.txt: QMTP 'Verbose' field should be 'on' or 'off'");
+							System.exit(0);
+						}
+					
+					}
+					else{
+						Logger.critical("condition.txt: Can't find QMTP 'Verbose:' field (should be 'on' or 'off)'");
 						System.exit(0);
 					}
         		}//otherwise, the flag useQM will remain false by default and the traditional group additivity approach will be used
@@ -1471,7 +1491,7 @@ public class ReactionModelGenerator {
 				double pt = System.currentTimeMillis();
 				// Grab all species from primary kinetics / reaction libraries
 				//	WE CANNOT PRUNE THESE SPECIES
-				HashMap unprunableSpecies = new HashMap();
+				LinkedHashMap unprunableSpecies = new LinkedHashMap();
 				if (getPrimaryKineticLibrary() != null) {
 					unprunableSpecies.putAll(getPrimaryKineticLibrary().speciesSet);
 				}
@@ -2085,7 +2105,7 @@ public class ReactionModelGenerator {
 		boolean found = false;
 		if (rOrP.equals("reactants")){
 			Iterator originalreactants = reactionStructure.getReactants();
-			HashSet tempHashSet = new HashSet();
+			LinkedHashSet tempHashSet = new LinkedHashSet();
 			while(originalreactants.hasNext()){
 				tempHashSet.add(originalreactants.next());
 			}
@@ -2111,7 +2131,7 @@ public class ReactionModelGenerator {
 		}
 		else{
 			Iterator originalproducts = reactionStructure.getProducts();
-			HashSet tempHashSet = new HashSet();
+			LinkedHashSet tempHashSet = new LinkedHashSet();
 			while(originalproducts.hasNext()){
 				tempHashSet.add(originalproducts.next());
 			}
@@ -2152,7 +2172,7 @@ public class ReactionModelGenerator {
 			FileReader fr = new FileReader(coreSpecies);
 			BufferedReader reader = new BufferedReader(fr);
 			String line = ChemParser.readMeaningfulLine(reader, true);
-			//HashSet speciesSet = new HashSet();
+			//LinkedHashSet speciesSet = new LinkedHashSet();
 			//			if (reactionSystem == null){//10/24/07 gmagoon: commenting out since contents of if was already commented out anyway
 			//				//ReactionSystem reactionSystem = new ReactionSystem();
 			//			}
@@ -2302,7 +2322,7 @@ public class ReactionModelGenerator {
 //			FileReader fr = new FileReader(edgeSpecies);
 //			BufferedReader reader = new BufferedReader(fr);
 //			String line = ChemParser.readMeaningfulLine(reader);
-//			//HashSet speciesSet = new HashSet();
+//			//LinkedHashSet speciesSet = new LinkedHashSet();
 //			
 //			while (line!=null) {
 //				
@@ -2763,8 +2783,8 @@ public class ReactionModelGenerator {
             bw = new BufferedWriter(new FileWriter("Restart/pdepnetworks.txt"));
     		int numFameTemps = PDepRateConstant.getTemperatures().length;
     		int numFamePress = PDepRateConstant.getPressures().length;
-    		int numChebyTemps = ChebyshevPolynomials.getNT();
-    		int numChebyPress = ChebyshevPolynomials.getNP();
+    		int numChebyTemps = ChebyshevPolynomials.getDefaultNT();
+    		int numChebyPress = ChebyshevPolynomials.getDefaultNP();
     		//int numPlog = PDepArrheniusKinetics.getNumPressures();
 			int numPlog = numFamePress; // probably often the case for FAME-generated PLOG rates (but not for seed or library reactions)
     		String EaUnits = ArrheniusKinetics.getEaUnits();
@@ -2951,8 +2971,8 @@ public class ReactionModelGenerator {
 	public boolean getSensitivity(){
 		return sensitivity;
 	}
-	
-	
+		
+
 	public LinkedList getSpeciesList() {
 		return species;
 	}
@@ -3535,8 +3555,8 @@ public class ReactionModelGenerator {
 				}
 			}
 			ChebyshevPolynomials chebyshev = new ChebyshevPolynomials(numChebyTs,
-																	  ChebyshevPolynomials.getTlow(), ChebyshevPolynomials.getTup(),
-																	  numChebyPs, ChebyshevPolynomials.getPlow(), ChebyshevPolynomials.getPup(),
+																	  ChebyshevPolynomials.getDefaultTlow(), ChebyshevPolynomials.getDefaultTup(),
+																	  numChebyPs, ChebyshevPolynomials.getDefaultPlow(), ChebyshevPolynomials.getDefaultPup(),
 																	  chebyPolys);
 			pdepk = new PDepRateConstant(rateCoefficients,chebyshev);
 		} else if (numPlogs > 0) {
@@ -3947,11 +3967,11 @@ public class ReactionModelGenerator {
         //#]
     }
 
-    public void pruneReactionModel(HashMap unprunableSpecies) {
+    public void pruneReactionModel(LinkedHashMap unprunableSpecies) {
 		
 		Runtime runtime = Runtime.getRuntime();
 
-        HashMap prunableSpeciesMap = new HashMap();
+        LinkedHashMap prunableSpeciesMap = new LinkedHashMap();
 		//check whether all the reaction systems reached target conversion/time
 		boolean allReachedTarget = true;
 		for (Integer i = 0; i < reactionSystemList.size(); i++) {
@@ -4118,7 +4138,7 @@ public class ReactionModelGenerator {
 			ReactionTemplateLibrary rtl = ReactionTemplateLibrary.getINSTANCE();
 			
 			iter = ((CoreEdgeReactionModel)getReactionModel()).getUnreactedReactionSet().iterator();
-			HashSet toRemove = new HashSet();
+			LinkedHashSet toRemove = new LinkedHashSet();
 			while(iter.hasNext()){
 				Reaction reaction = (Reaction)iter.next();
 				if (reactionPrunableQ(reaction, speciesToPrune)) toRemove.add(reaction);
@@ -4146,16 +4166,16 @@ public class ReactionModelGenerator {
 			//remove reactions from PDepNetworks in PDep cases
 			if (reactionModelEnlarger instanceof RateBasedPDepRME)	{
 				iter = PDepNetwork.getNetworks().iterator();
-				HashSet pdnToRemove = new HashSet();
-				HashSet toRemovePath;
-				HashSet toRemoveNet;
-				HashSet toRemoveNonincluded;
-				HashSet toRemoveIsomer;
+				LinkedHashSet pdnToRemove = new LinkedHashSet();
+				LinkedHashSet toRemovePath;
+				LinkedHashSet toRemoveNet;
+				LinkedHashSet toRemoveNonincluded;
+				LinkedHashSet toRemoveIsomer;
 				while (iter.hasNext()){
 					PDepNetwork pdn = (PDepNetwork)iter.next();
 					//identify path reactions to remove
 					Iterator rIter = pdn.getPathReactions().iterator();
-					toRemovePath = new HashSet();
+					toRemovePath = new LinkedHashSet();
 					while(rIter.hasNext()){
 						Reaction reaction = (Reaction)rIter.next();
 						try {
@@ -4184,21 +4204,21 @@ public class ReactionModelGenerator {
 					}
 					//identify net reactions to remove
 					rIter = pdn.getNetReactions().iterator();
-					toRemoveNet = new HashSet();
+					toRemoveNet = new LinkedHashSet();
 					while(rIter.hasNext()){
 						Reaction reaction = (Reaction)rIter.next();
 						if (reactionPrunableQ(reaction, speciesToPrune)) toRemoveNet.add(reaction);
 					}
 					//identify nonincluded reactions to remove
 					rIter = pdn.getNonincludedReactions().iterator();
-					toRemoveNonincluded = new HashSet();
+					toRemoveNonincluded = new LinkedHashSet();
 					while(rIter.hasNext()){
 						Reaction reaction = (Reaction)rIter.next();
 						if (reactionPrunableQ(reaction, speciesToPrune)) toRemoveNonincluded.add(reaction);
 					}
 					//identify isomers to remove
 					Iterator iIter = pdn.getIsomers().iterator();
-					toRemoveIsomer = new HashSet();
+					toRemoveIsomer = new LinkedHashSet();
 					while(iIter.hasNext()){
 						PDepIsomer pdi = (PDepIsomer)iIter.next();
 						Iterator isIter = pdi.getSpeciesListIterator();
@@ -4755,14 +4775,14 @@ public class ReactionModelGenerator {
 			PDepRateConstant.setTemperatures(temperatures);
 			PDepRateConstant.setTMin(Tmin);
 			PDepRateConstant.setTMax(Tmax);
-			ChebyshevPolynomials.setTlow(Tmin);
-			ChebyshevPolynomials.setTup(Tmax);
+			ChebyshevPolynomials.setDefaultTlow(Tmin);
+			ChebyshevPolynomials.setDefaultTup(Tmax);
 			FastMasterEqn.setPressures(pressures);
 			PDepRateConstant.setPressures(pressures);
 			PDepRateConstant.setPMin(Pmin);
 			PDepRateConstant.setPMax(Pmax);
-			ChebyshevPolynomials.setPlow(Pmin);
-			ChebyshevPolynomials.setPup(Pmax);
+			ChebyshevPolynomials.setDefaultPlow(Pmin);
+			ChebyshevPolynomials.setDefaultPup(Pmax);
 			
 			/*
 			 * New option for input file: DecreaseGrainSize
