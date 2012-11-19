@@ -40,6 +40,7 @@ ThermoMethod: QM Gaussian03
 QMForCyclicsOnly: on
 MaxRadNumForQM: 0
 CheckConnectivity: check
+Verbose: off
 
 InitialStatus:
 

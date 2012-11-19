@@ -534,7 +534,7 @@ public class ReactionModelGenerator {
 							QMTP.qmfolder = "QMfiles/";
 							QMTP.qmVerbose = true;
 						}
-						if(!checkQmVerbose.equals("off")){
+						else if(!checkQmVerbose.equals("off")){
 							Logger.critical("condition.txt: QMTP 'Verbose' field should be 'on' or 'off'");
 							System.exit(0);
 						}
