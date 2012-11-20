@@ -189,7 +189,7 @@ public class QMTP implements GeneralGAPP {
                 ThermoData resultToStore=generateQMThermoData(p_chemGraph);
                 //Writes the result of the qmThermo to the QMTPThermoWriter
                 String qmMethod = getQmMethod();
-                QMLibraryEditor.addQMTPThermo(p_chemGraph, inChI, result, qmMethod, qmprogram);
+                QMLibraryEditor.addQMTPThermo(p_chemGraph, inChI, resultToStore, qmMethod, qmprogram);
                 Logger.info("Writing results of QMTP calcultion to QM Thermo Library for " + inChI);
                 //put in Hashmap for quicker access? -nyee
                 qmLibrary.put(inChI, resultToStore);
