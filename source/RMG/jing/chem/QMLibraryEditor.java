@@ -224,6 +224,10 @@ public class QMLibraryEditor {
 	    	}
 	    	
 	    	in.close();
+	    	
+	    	//For testing QMTP functionality
+	    	Logger.info(library.toString());
+	    	
 	    	return library;
 	    	
     	}
