@@ -180,6 +180,7 @@ public class QMTP implements GeneralGAPP {
                 if (tmpTherm != null){
                 result = tmpTherm.copyWithExtraInfo();//use a copy of the object!; that way, subsequent modifications of this object don't change the QM library
                 Logger.info("QM calculation for " + inChI + " previously performed. Pulling Thermo from previous results.");
+                Logger.info("Thermo for " + inChI + " is " + result.toString());
                 result.setSource(result.comments);
                 }
                 //this happens if not in qmLibrary Hashmap
@@ -193,6 +194,7 @@ public class QMTP implements GeneralGAPP {
                 //put in Hashmap for quicker access? -nyee
                 qmLibrary.put(inChI, resultToStore);
                 result = resultToStore.copyWithExtraInfo(); //use a copy of the object!; that way, subsequent modifications of this object don't change the QM library
+                Logger.info("Thermo for " + inChI + " is " + result.toString());
                 }
             }
             
@@ -274,6 +276,7 @@ public class QMTP implements GeneralGAPP {
             if (tempTherm != null){
             	result = tempTherm.copyWithExtraInfo(); //use a copy of the object!; that way, subsequent modifications of this object don't change the QM library
             	Logger.info("QM calculation for " + inChI + " previously performed. Pulling Thermo from previous results.");
+            	Logger.info("Thermo for " + inChI + " is " + result.toString());
             	result.setSource(result.comments);
             }
             else {
@@ -285,6 +288,7 @@ public class QMTP implements GeneralGAPP {
                 Logger.info("Writing results of QMTP calcultion to QM Thermo Library for " + inChI);
                 //put in Hashmap for quicker access? -nyee
                 qmLibrary.put(inChI, result);
+                Logger.info("Thermo for " + inChI + " is " + result.toString());
             }
             
         }
