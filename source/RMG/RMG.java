@@ -53,6 +53,9 @@ public class RMG {
         // Log the RMG header
         Logger.logHeader();
         
+        //Initialize the cyclic List
+        CyclicList.initialize();
+        
         try {
 
             // Record the time at which RMG was started (so we can periodically
@@ -114,7 +117,7 @@ public class RMG {
 
             // Save the resulting model to Final_Model.txt
             writeFinalModel(rmg);
-
+            
        }
        catch (Exception e) {
            // Any unhandled exception will land here
@@ -122,7 +125,9 @@ public class RMG {
            Logger.logStackTrace(e);
            Logger.critical(e.getMessage());
        }
-
+       
+       //finish Cyclic List
+       CyclicList.finish();
        // Finish the logger
        Logger.finish();
        System.exit(0);

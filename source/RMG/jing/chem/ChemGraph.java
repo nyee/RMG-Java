@@ -41,6 +41,7 @@ import jing.param.Global;
 import jing.param.Temperature;
 import jing.rxnSys.Logger;
 import jing.rxnSys.ReactionModelGenerator;
+import jing.rxnSys.CyclicList;
 
 //## package jing::chem
 
@@ -1404,6 +1405,10 @@ return sn;
         //#[ operation generateThermoData()
         // use GAPP to generate Thermo data
         try {
+        	//This adds the cyclic to the cyclic list -nyee
+        		if (!this.isAcyclic()){
+        			CyclicList.addSpecies(this.getInChI());
+        		}
                 if (useQM){
                     if(useQMonCyclicsOnly && this.isAcyclic()) thermoGAPP=GATP.getINSTANCE();//use GroupAdditivity for acyclic compounds if this option is set
                     else  thermoGAPP=QMTP.getINSTANCE();
