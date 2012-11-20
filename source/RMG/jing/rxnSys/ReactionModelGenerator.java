@@ -525,7 +525,7 @@ public class ReactionModelGenerator {
 						Logger.critical("condition.txt: Can't find 'CheckConnectivity:' field (should be 'off', 'check', or 'confirm')");
 						System.exit(0);
 					}
-					line = ChemParser.readMeaningfulLine(reader, true); //read in either QM verbose option
+					line = ChemParser.readMeaningfulLine(reader, true); //read in either QM verbose option, or reactants if verbose option omitted
 					if (line.startsWith("Verbose:")){
 						StringTokenizer st5 = new StringTokenizer(line);
 						String nameQmVerbose = st5.nextToken(); //String Verbose
@@ -538,14 +538,18 @@ public class ReactionModelGenerator {
 							Logger.critical("condition.txt: QMTP 'Verbose' field should be 'on' or 'off'");
 							System.exit(0);
 						}
-					
+						line = ChemParser.readMeaningfulLine(reader, true);
 					}
-					else{
-						Logger.critical("condition.txt: Can't find QMTP 'Verbose:' field (should be 'on' or 'off)'");
-						System.exit(0);
-					}
+					//removed so that verbose line is optional
+					//else{
+					//	Logger.critical("condition.txt: Can't find QMTP 'Verbose:' field (should be 'on' or 'off)'");
+					//	System.exit(0);
+					//}
         		}//otherwise, the flag useQM will remain false by default and the traditional group additivity approach will be used
-				line = ChemParser.readMeaningfulLine(reader, true);//read in reactants
+				
+        		//Moved above so that verbose line is optional 
+        		//line = ChemParser.readMeaningfulLine(reader, true);//read in reactants
+        		
 			}
             
 			//            // Read in Solvation effects
