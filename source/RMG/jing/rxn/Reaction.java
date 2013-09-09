@@ -1281,6 +1281,19 @@ public class Reaction {
         }
     }
 
+    public void removeKinetics(int k_index) {
+    	Kinetics[] tempKinetics = kinetics;
+    	kinetics = new Kinetics[kinetics.length-1];
+        for (int i = 0; i < tempKinetics.length; i++) {
+            if (i < k_index) {
+            	kinetics[i] = tempKinetics[i];
+            }
+            else if (i > k_index) {
+            	kinetics[i-1]= tempKinetics[i];
+            }
+        }
+    }
+    
     public void addAdditionalKinetics(Kinetics p_kinetics, int red,
             boolean readingFromUserLibrary) {
         if (finalized)

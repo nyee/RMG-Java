@@ -29,6 +29,7 @@ package jing.rxn;
 import java.io.*;
 import jing.chem.*;
 import java.util.*;
+
 import jing.param.*;
 import jing.rxnSys.PrimaryKineticLibrary;
 import jing.rxnSys.ReactionModelGenerator;
@@ -438,6 +439,7 @@ public class ReactionTemplate {
                 return null;
             }
             String comments = getKineticsComments(fg);
+            LinkedList stackList = getMatchedpathStack(fg);
             kf = findExactRateConstant(fg);
             if (kf == null) {
                 kf = findClosestRateConstant(fg);
@@ -587,6 +589,17 @@ public class ReactionTemplate {
         return comment.toString();
     }
 
+    // get a list of the matchedPaths as stacks for comparison with
+    // 1+2_cycloaddition special case
+    private LinkedList getMatchedpathStack(Collection p_matchedPathSet) {
+        StringBuilder comment = new StringBuilder("[ ");
+        LinkedList<Stack> matchedStack = new LinkedList<Stack>();
+        for (Iterator iter = p_matchedPathSet.iterator(); iter.hasNext();) {
+            Stack s = (Stack) iter.next();
+            matchedStack.add(s);
+        }
+        return matchedStack;
+    }
     // ## operation findUnion(String,LinkedHashMap)
     private void findUnion(String p_name, LinkedHashMap p_unRead) {
         // #[ operation findUnion(String,LinkedHashMap)
@@ -978,7 +991,16 @@ public class ReactionTemplate {
      */
     protected LinkedHashSet reactTwoReactants(ChemGraph cg1, LinkedHashSet rs1,
             ChemGraph cg2, LinkedHashSet rs2) {
-        LinkedHashSet reaction_set = new LinkedHashSet();
+    	//Special cases of duplicate reactions
+    	HashSet<String> checkForDupes = new HashSet();
+    	checkForDupes.add("1+2_Cycloaddition");
+    	//initialize dupesMap which uses fg as a key and the index number of the associated kinetics as a value
+//    	HashMap dupesMap = new HashMap();
+//    	HashMap tempDupesMap = new HashMap();
+    	//initialize reactionDupesMap which uses a structure as a key and gives a dupesMap as a value
+    	HashMap reactionDupesMap = new HashMap();
+    	
+    	LinkedHashSet reaction_set = new LinkedHashSet();
         if (rs1.isEmpty() || rs2.isEmpty())
             return reaction_set;
         ChemGraph r1 = cg1;
@@ -1066,22 +1088,133 @@ public class ReactionTemplate {
                             TemplateReaction r = TemplateReaction
                                     .makeTemplateReaction(structureSp, k, this,
                                             structure);
-                            if (r != null)
+                        
+                            if (r != null) {
                                 reactionMap.put(structureSp, r);
+                            	if (checkForDupes.contains(this.name)) {
+                            		LinkedList reactants = structureSp.reactants;
+                                    LinkedList fg = structureTemplate.getMatchedFunctionalGroup(reactants);
+                                    HashMap dupesMap = new HashMap();
+                                    dupesMap.put(fg, 0);
+                                    reactionDupesMap.put(structureSp, dupesMap);
+                            	}
                             structure = null;
-                        } else {
-                            if (k == null)
+                            }
+                        }
+                        
+                        else {
+                            if (k == null) {
                                 old_reaction.addAdditionalKinetics(null,
                                         redundancy, false);
+                            }
                             else {
-                                for (int i = 0; i < k.length; i++) {
-                                    old_reaction.addAdditionalKinetics(k[i],
-                                            redundancy, false);
-                                }
+                            	if (checkForDupes.contains(this.name)) {
+                            		LinkedList reactants = structureSp.reactants;
+                                    LinkedList fg = structureTemplate.getMatchedFunctionalGroup(reactants);
+                                    HashMap dupesMap = (HashMap) reactionDupesMap.get(structureSp);
+                                    Iterator entriesIterator = dupesMap.entrySet().iterator();
+                                    LinkedList entriesRemoved = new LinkedList();
+                                    while (entriesIterator.hasNext()) {
+                                    	Map.Entry entry = (Map.Entry) entriesIterator.next();
+	                                    LinkedList oldfg = (LinkedList) entry.getKey();
+	                                    int kineticsIndex = (int) entry.getValue();
+	                                    Boolean oldAboveNew = new Boolean(true);
+	                                    Boolean newAboveOld = new Boolean(true);
+	                                    //check if oldfg's nodes are parents of fg
+	                                    for (int i=0; i < oldfg.size(); i++) {
+	                                    	Stack currentOld_tree=(Stack) oldfg.get(i);
+	                                    	Stack currentNew_tree=(Stack) fg.get(i);
+	                                    	if (newAboveOld & currentOld_tree.search(currentNew_tree.peek()) < 0) {
+	                                    		newAboveOld= false;
+	                                    	}
+	                                    	if (oldAboveNew & currentNew_tree.search(currentOld_tree.peek()) < 0) {
+	                                    		oldAboveNew= false;
+	                                    	}
+	                                    }
+	                                    Logger.info("newAboveOld is ".concat(newAboveOld.toString()));
+	                                    Logger.info("oldAboveNew is ".concat(oldAboveNew.toString()));
+	                                    
+	                                    //the first case in the if statement below is where the rule
+	                                    //is a duplicate. In that case add it in for the degeneracy.
+	                                    if ((newAboveOld & oldAboveNew)){
+		                                    for (int i = 0; i < k.length; i++) {
+		                                        old_reaction.addAdditionalKinetics(k[i],
+		                                                redundancy, false);
+		                                    }
+		                                    
+	                            		}
+	                                    
+	                                    //The second case is where the rule is compeltely different
+	                                    //but the reactants and products are the same. In that case
+	                                    //it should be added as a duplicate.
+	                                    else if ((!newAboveOld & !oldAboveNew)) {
+		                                    for (int i = 0; i < k.length; i++) {
+		                                        old_reaction.addAdditionalKinetics(k[i],
+		                                                redundancy, false);
+		                                    }
+		                                    //put into dupesMap the new reaction's kinetic index
+		                                    dupesMap.put(fg, old_reaction.kinetics.length);
+	                                    }
+	                                    //Here is where the old kinetics is more general and should be removed
+	                                    //and the new kinetics should be added in
+	                                    else if (oldAboveNew) {
+	                                    	//set the kinetics equal to an empty array, so that indexes are
+	                                    	//not changed. Will clean up later.
+	                                    	old_reaction.setKinetics(null, kineticsIndex);
+	                                    	entriesRemoved.add(oldfg);
+		                                    for (int i = 0; i < k.length; i++) {
+		                                        old_reaction.addAdditionalKinetics(k[i],
+		                                                redundancy, false);
+		                                    }
+	                                        //the dupesMap also needs to be update
+	                                        dupesMap.put(fg, old_reaction.kinetics.length);    
+	                                    }
+	                                    //The last case where only newAboveOld is true is where
+	                                    //the old rule is more specific, so the new kinetics should just not
+	                                    //be added
+                                    }
+                                    //clean up kinetics and dupesMap
+                                    if (!entriesRemoved.isEmpty()){
+	                                    Iterator fgsRemovedIterator = entriesRemoved.iterator();
+	                                    HashMap tempDupesMap = new HashMap();
+	                                    while (fgsRemovedIterator.hasNext()) {
+	                                    	LinkedList removedEntry = (LinkedList) fgsRemovedIterator.next();
+	                                    	Iterator dupKeys = dupesMap.keySet().iterator();
+	                                    	int removedIndex = (int) dupesMap.get(removedEntry);
+	                                    	while (dupKeys.hasNext()) {
+	                                    		LinkedList current_fg = (LinkedList) dupKeys.next();
+	                                    		if (((int) dupesMap.get(current_fg)) > removedIndex) {
+	                                    			if (tempDupesMap.containsKey(current_fg)) {
+	                                    				tempDupesMap.put(current_fg, (int) tempDupesMap.get(current_fg) -1);
+	                                    			}
+	                                    			else {
+	                                    			tempDupesMap.put(current_fg, (int) dupesMap.get(current_fg) -1);
+	                                    			}
+	                                    		}
+	                                    		else if (!entriesRemoved.contains(current_fg)) {
+	                                    			tempDupesMap.put(current_fg, dupesMap.get(current_fg));
+	                                    		}
+	                                    	}
+	                                    }
+	                                	reactionDupesMap.put(structureSp, tempDupesMap);
+	                                	//clean up kinetics
+	                                    Kinetics[] newKinetics = new Kinetics[tempDupesMap.keySet().size()];
+	                                    int j = 0;
+	                                    for (int i = 0; i < old_reaction.kinetics.length; i++) {
+	                                        if (!(old_reaction.kinetics[i] == null)) {
+	                                        	newKinetics[j]= old_reaction.kinetics[i];
+	                                        	j++;
+	                                        }
+	                                    old_reaction.kinetics= newKinetics; 
+	                                    }
+	                            	}
+                            	}
+                            	
                             }
                             // old_reaction.getStructure().increaseRedundancy(redundancy);
                             structure = null;
                         }
+                        
                     }
                 } catch (ForbiddenStructureException e) {
                     // do the next reaction site

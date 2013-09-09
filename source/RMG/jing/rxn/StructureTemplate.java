@@ -33,6 +33,7 @@ import jing.chem.Matchable;
 import jing.chem.ChemGraph;
 import jing.chemUtil.HierarchyTree;
 import jing.param.Global;
+import jing.rxnSys.Logger;
 
 // ## package jing::rxn
 // ----------------------------------------------------------------------------
@@ -142,8 +143,9 @@ public class StructureTemplate {
             found = false;
             Object o = r_iter.next();
             ChemGraph cg = null;
-            if (o instanceof Species)
-                cg = ((Species) r_iter.next()).getChemGraph();
+            if (o instanceof Species) {
+                cg = ((Species) o).getChemGraph();
+            	}
             else
                 cg = (ChemGraph) o;
             Iterator t_iter = reactantTree.iterator();

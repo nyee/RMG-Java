@@ -27,6 +27,9 @@
 package jing.chemUtil;
 
 import java.util.*;
+
+import jing.chem.FunctionalGroup;
+import jing.chem.FunctionalGroupCollection;
 import jing.chem.Matchable;
 import jing.rxnSys.Logger;
 
@@ -100,6 +103,39 @@ public class HierarchyTree extends Tree {
         // #[ operation repOk()
         return (super.repOk() && hierarchyOk());
         // #]
+    }
+    
+    /**
+     * Requires: Effects: returns the node that's name matches p_name Modifies:
+     */
+    //uses top down approach from root; Only works where the Tree has functionalGroups
+    public HierarchyTreeNode findNodeFromName(String p_name) {
+    	HierarchyTreeNode dummyNode=null;
+    	Queue<HierarchyTreeNode> nextLevel= new LinkedList<HierarchyTreeNode>();
+    	nextLevel.addAll(root.children);
+    	while (!nextLevel.isEmpty()) {
+			HierarchyTreeNode current_Node=nextLevel.poll();
+			try {
+				FunctionalGroupCollection current_element=(FunctionalGroupCollection) current_Node.getElement();
+				if (current_element.getName().equals(p_name)) {
+					return current_Node;
+				}
+				else if(!current_Node.isLeaf()) {
+					nextLevel.addAll(current_Node.children);
+				}
+			}
+			catch (ClassCastException e) {
+				FunctionalGroup current_element=(FunctionalGroup) current_Node.getElement();
+				if (current_element.getName().equals(p_name)) {
+					return current_Node;
+				}
+				else if(!current_Node.isLeaf()) {
+					nextLevel.addAll(current_Node.children);
+    				
+    			}
+    		}
+    	}
+    	return dummyNode;
     }
 }
 /*********************************************************************
